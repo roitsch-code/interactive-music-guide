@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Architecture of Musical Genius</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', serif;
+            background: #0f0f0f;
+            color: #e8e8e8;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)"/></svg>') repeat;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 0;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, #ff6600 50%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            line-height: 0.9;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #ffffff 0%, #ff6600 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: #999;
+            margin-bottom: 60px;
+            font-style: italic;
+            max-width: 600px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            writing-mode: vertical-rl;
+            font-size: 0.9rem;
+            color: #666;
+            letter-spacing: 0.1em;
+        }
+
+        .introduction {
+            padding: 120px 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .intro-header {
+            font-size: 2.5rem;
+            font-weight: 300;
+            line-height: 1.2;
+            margin-bottom: 60px;
+            color: #fff;
+        }
+
+        .intro-text {
+            font-size: 1.2rem;
+            color: #bbb;
+            margin-bottom: 40px;
+            text-align: justify;
+        }
+
+        .intro-highlight {
+            background: rgba(255, 102, 0, 0.1);
+            border-left: 3px solid #ff6600;
+            padding: 30px;
+            margin: 40px 0;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .methodology {
+            padding: 120px 0;
+            background: rgba(20, 20, 20, 0.3);
+        }
+
+        .methodology h2 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 60px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .principle-card {
+            background: rgba(30, 30, 30, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .principle-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 102, 0, 0.3);
+            background: rgba(40, 40, 40, 0.7);
+        }
+
+        .principle-number {
+            font-size: 3rem;
+            color: #ff6600;
+            font-weight: 300;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        .principle-title {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .principle-description {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .section-divider {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .section-divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent 0%, #ff6600 50%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .section-divider::after {
+            content: '♪';
+            font-size: 2rem;
+            color: #ff6600;
+            background: #0f0f0f;
+            padding: 0 20px;
+        }
+
+        .track-analysis {
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .track-header {
+            text-align: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .track-number {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8rem;
+            color: rgba(255, 102, 0, 0.1);
+            font-weight: 300;
+            z-index: -1;
+        }
+
+        .track-title {
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: 300;
+            letter-spacing: -0.01em;
+        }
+
+        .track-artist {
+            font-size: 1.4rem;
+            color: #ff6600;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .track-description {
+            font-size: 1.1rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .listen-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 80px;
+        }
+
+        .listen-link {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+
+        .listen-link:hover {
+            border-color: #ff6600;
+            background: rgba(255, 102, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .listen-link.primary {
+            background: #ff6600;
+            border-color: #ff6600;
+        }
+
+        .listen-link.primary:hover {
+            background: #ff8800;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 60px;
+            margin-top: 80px;
+        }
+
+        .insight-moment {
+            position: relative;
+            padding: 50px 40px;
+            background: rgba(25, 25, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+        }
+
+        .insight-moment:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 102, 0, 0.3);
+            background: rgba(35, 35, 35, 0.8);
+        }
+
+        .insight-moment::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff6600, #ff3300);
+        }
+
+        .moment-timestamp {
+            font-size: 0.9rem;
+            color: #ff6600;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .moment-title {
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        .moment-description {
+            color: #ccc;
+            margin-bottom: 30px;
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        .technical-insight {
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid rgba(255, 102, 0, 0.2);
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .technical-insight h4 {
+            color: #ff6600;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .technical-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .tech-detail {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 102, 0, 0.1);
+            border: 1px solid rgba(255, 102, 0, 0.2);
+        }
+
+        .tech-detail .value {
+            font-size: 1.2rem;
+            color: #ff6600;
+            font-weight: bold;
+            display: block;
+        }
+
+        .tech-detail .label {
+            font-size: 0.85rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .mathematical-visualization {
+            background: rgba(255, 102, 0, 0.03);
+            border: 1px solid rgba(255, 102, 0, 0.15);
+            padding: 40px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .math-title {
+            color: #ff6600;
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        .ratio-demonstration {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .ratio-element {
+            background: linear-gradient(135deg, #ff6600, #ff3300);
+            color: white;
+            padding: 20px 25px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .ratio-operator {
+            color: #ff6600;
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .conclusion {
+            padding: 120px 0;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .conclusion h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            color: #fff;
+        }
+
+        .conclusion p {
+            font-size: 1.2rem;
+            color: #bbb;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+
+        .github-section {
+            background: rgba(20, 20, 20, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 60px;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .github-section h3 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .github-section p {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        .github-link {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 15px 40px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+
+        .github-link:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .track-title {
+                font-size: 2rem;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .listen-section {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .listen-link {
+                width: 250px;
+                justify-content: center;
+            }
+            
+            .ratio-demonstration {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .technical-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(40, 40, 40, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 102, 0, 0.6);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 102, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+    
+    <div class="container">
+        <section class="hero">
+            <h1>The Architecture<br>of Musical Genius</h1>
+            <p class="hero-subtitle">A journey into the mathematical principles, innovative techniques, and objective frameworks that define exceptional music composition</p>
+            <div class="scroll-indicator">scroll down</div>
+        </section>
+
+        <section class="introduction">
+            <h2 class="intro-header">Beyond Subjective Taste:<br>The Science of Musical Excellence</h2>
+            
+            <p class="intro-text">
+                What separates a good song from a masterpiece? While musical taste remains deeply personal, the greatest compositions throughout history share remarkable structural similarities—mathematical proportions, harmonic relationships, and production techniques that can be measured, analyzed, and understood.
+            </p>
+
+            <div class="intro-highlight">
+                "Music is the hidden arithmetical exercise of a mind unconscious that it is calculating." — Gottfried Wilhelm Leibniz
+            </div>
+
+            <p class="intro-text">
+                This exploration takes you beyond surface-level appreciation into the objective foundations of musical genius. From the golden ratio in song structure to polyrhythmic mathematics, from harmonic series relationships to cutting-edge production techniques—discover the concrete principles that make certain music transcendent.
+            </p>
+
+            <p class="intro-text">
+                We'll analyze four exceptional works that demonstrate different aspects of compositional mastery: James Blake's innovative vocal processing, Ólafur Arnalds' mathematical precision, Nils Frahm's textural innovation, and Steve Reich's minimalist perfection. Each represents a different pathway to musical excellence, unified by their use of measurable, replicable techniques.
+            </p>
+        </section>
+
+        <section class="methodology">
+            <h2>Our Analytical Framework</h2>
+            <p style="text-align: center; color: #aaa; max-width: 600px; margin: 0 auto;">
+                Rather than relying on subjective interpretation, we examine music through quantifiable lenses that reveal the underlying architecture of exceptional composition.
+            </p>
+
+            <div class="principles-grid">
+                <div class="principle-card">
+                    <div class="principle-number">01</div>
+                    <h3 class="principle-title">Mathematical Structure</h3>
+                    <p class="principle-description">
+                        Analysis of golden ratio applications, Fibonacci sequences, and other mathematical principles in song architecture. These proportions appear consistently in the most compelling musical works.
+                    </p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-number">02</div>
+                    <h3 class="principle-title">Harmonic Innovation</h3>
+                    <p class="principle-description">
+                        Examination of chord progressions, voice leading, and harmonic relationships that create emotional impact through measurable tension and resolution patterns.
+                    </p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-number">03</div>
+                    <h3 class="principle-title">Production Techniques</h3>
+                    <p class="principle-description">
+                        Technical analysis of recording methods, signal processing, spatial audio design, and other production innovations that can be quantified and replicated.
+                    </p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-number">04</div>
+                    <h3 class="principle-title">Rhythmic Complexity</h3>
+                    <p class="principle-description">
+                        Investigation of polyrhythms, metric modulations, and rhythmic relationships that create complexity through mathematical precision rather than randomness.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Mathematical Structure Section -->
+        <section class="methodology">
+            <h2>Part I: Mathematical Structure</h2>
+            <p style="text-align: center; color: #aaa; max-width: 600px; margin: 0 auto;">
+                The following compositions demonstrate how mathematical principles—golden ratios, Fibonacci sequences, and harmonic relationships—create compelling musical architecture.
+            </p>
+        </section>
+
+        <!-- James Blake Analysis -->
+        <section class="track-analysis">
+            <div class="track-header">
+                <div class="track-number">01</div>
+                <h2 class="track-title">The Wilhelm Scream</h2>
+                <div class="track-artist">James Blake</div>
+                <p class="track-description">
+                    Blake revolutionized electronic music by treating vocal processing as a compositional element rather than mere enhancement. His mathematical approach to harmony layering and precise use of digital artifacts creates an entirely new sonic vocabulary.
+                </p>
+                
+                <div class="listen-section">
+                    <a href="https://www.youtube.com/watch?v=MVgEWhiCr_s" target="_blank" class="listen-link primary">
+                        ▶ Listen on YouTube
+                    </a>
+                    <a href="https://soundcloud.com/jamesblakeofficial/the-wilhelm-scream" target="_blank" class="listen-link">
+                        SoundCloud
+                    </a>
+                    <a href="https://open.spotify.com/track/688DZF6e1MH5Uf409dwaHm" target="_blank" class="listen-link">
+                        Spotify
+                    </a>
+                </div>
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-moment">
+                    <div class="moment-timestamp">0:20 - 0:35</div>
+                    <h3 class="moment-title">Vocal Architecture</h3>
+                    <p class="moment-description">
+                        Blake constructs vocal harmonies using precise mathematical intervals: +5 semitones (perfect fourth), -7 semitones (perfect fifth), and +12 semitones (octave). This isn't intuitive arrangement—it's calculated harmonic architecture based on the overtone series.
+                    </p>
+                    <div class="technical-insight">
+                        <h4>Technical Analysis</h4>
+                        <div class="technical-details">
+                            <div class="tech-detail">
+                                <span class="value">+5 / -7 / +12</span>
+                                <span class="label">Semitone Intervals</span>
+                            </div>
+                            <div class="tech-detail">
+                                <span class="value">20ms</span>
+                                <span class="label">Pitch Correction Rate</span>
+                            </div>
+                            <div class="tech-detail">
+                                <span class="value">35%</span>
+                                <span class="label">Reverb Send</span>
+                            </div>
+                        </div>
+                        <p>These intervals create perfect consonance within dissonance—a technique borrowed from jazz reharmonization but applied to electronic processing.</p>
+                    </div>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">2:45 - 3:00</div>
+                    <h3 class="moment-title">Golden Ratio Climax</h3>
+                    <p class="moment-description">
+                        The song's emotional peak occurs at exactly 61.8% of its total duration—the golden ratio. This isn't coincidence but calculated dramatic pacing, a technique found in everything from classical symphonies to film scoring.
+                    </p>
+                    <div class="mathematical-visualization">
+                        <h4 class="math-title">Golden Ratio in Musical Structure</h4>
+                        <div class="ratio-demonstration">
+                            <div class="ratio-element">61.8%</div>
+                            <div class="ratio-operator">=</div>
+                            <div class="ratio-element">φ Proportion</div>
+                            <div class="ratio-operator">=</div>
+                            <div class="ratio-element">Peak Emotion</div>
+                        </div>
+                        <p>This mathematical proportion (φ = 1.618...) appears throughout nature and has been used by composers from Bach to contemporary artists to create optimal emotional pacing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Ólafur Arnalds Analysis -->
+        <section class="track-analysis">
+            <div class="track-header">
+                <div class="track-number">02</div>
+                <h2 class="track-title">We Contain Multitudes</h2>
+                <div class="track-artist">Ólafur Arnalds</div>
+                <p class="track-description">
+                    Arnalds represents the intersection of classical training and contemporary innovation. His compositions demonstrate how mathematical principles—from Fibonacci sequences to harmonic ratios—can create profound emotional impact through structural precision.
+                </p>
+                
+                <div class="listen-section">
+                    <a href="https://www.youtube.com/watch?v=NJKRmjXAxhE" target="_blank" class="listen-link primary">
+                        ▶ Listen on YouTube
+                    </a>
+                    <a href="https://soundcloud.com/olafur-arnalds/we-contain-multitudes" target="_blank" class="listen-link">
+                        SoundCloud
+                    </a>
+                    <a href="https://open.spotify.com/track/4SrMWTrs3io7FJXAHSo43c" target="_blank" class="listen-link">
+                        Spotify
+                    </a>
+                </div>
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-moment">
+                    <div class="moment-timestamp">0:30 - 0:50</div>
+                    <h3 class="moment-title">Fibonacci Melodic Structure</h3>
+                    <p class="moment-description">
+                        The main melodic phrase follows the Fibonacci sequence in note durations: 1-1-2-3-5 beats. This creates an organic sense of growth and expansion that feels natural while being mathematically precise.
+                    </p>
+                    <div class="mathematical-visualization">
+                        <h4 class="math-title">Fibonacci in Musical Time</h4>
+                        <div class="ratio-demonstration">
+                            <div class="ratio-element">1</div>
+                            <div class="ratio-element">1</div>
+                            <div class="ratio-element">2</div>
+                            <div class="ratio-element">3</div>
+                            <div class="ratio-element">5</div>
+                        </div>
+                        <p>Each number is the sum of the two preceding ones, creating naturally expanding phrase lengths that feel inevitable rather than arbitrary.</p>
+                    </div>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">1:40 - 2:00</div>
+                    <h3 class="moment-title">Golden Section Climax</h3>
+                    <p class="moment-description">
+                        At precisely 61.8% of the track's duration, Arnalds introduces the piece's most emotionally intense moment. This demonstrates conscious application of the golden ratio in temporal structure.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Production Innovation Section -->
+        <section class="methodology">
+            <h2>Part II: Production Innovation</h2>
+            <p style="text-align: center; color: #aaa; max-width: 600px; margin: 0 auto;">
+                These compositions showcase how innovative recording techniques, acoustic modifications, and spatial design create new sonic possibilities through technical mastery.
+            </p>
+        </section>
+
+        <!-- Nils Frahm Analysis -->
+        <section class="track-analysis">
+            <div class="track-header">
+                <div class="track-number">03</div>
+                <h2 class="track-title">Says</h2>
+                <div class="track-artist">Nils Frahm</div>
+                <p class="track-description">
+                    Frahm's approach represents textural innovation through acoustic modification and spatial design. His techniques demonstrate how physical alterations to instruments and careful attention to acoustic properties can create entirely new sonic possibilities.
+                </p>
+                
+                <div class="listen-section">
+                    <a href="https://www.youtube.com/watch?v=dIwwjy4slI8" target="_blank" class="listen-link primary">
+                        ▶ Listen on YouTube
+                    </a>
+                    <a href="https://soundcloud.com/nils_frahm/says" target="_blank" class="listen-link">
+                        SoundCloud
+                    </a>
+                    <a href="https://open.spotify.com/track/6MEQsu2GtfHkzQIfv8ETxL" target="_blank" class="listen-link">
+                        Spotify
+                    </a>
+                </div>
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-moment">
+                    <div class="moment-timestamp">0:30 - 1:00</div>
+                    <h3 class="moment-title">Prepared Piano Acoustics</h3>
+                    <p class="moment-description">
+                        Frahm places felt between the piano hammers and strings, fundamentally altering the instrument's frequency response. This dampens frequencies above 2kHz while emphasizing fundamental tones, creating the characteristic "muffled" texture that defines the piece.
+                    </p>
+                    <div class="technical-insight">
+                        <h4>Acoustic Modification Analysis</h4>
+                        <div class="technical-details">
+                            <div class="tech-detail">
+                                <span class="value">-12dB</span>
+                                <span class="label">High Freq Reduction</span>
+                            </div>
+                            <div class="tech-detail">
+                                <span class="value">2kHz</span>
+                                <span class="label">Cutoff Frequency</span>
+                            </div>
+                            <div class="tech-detail">
+                                <span class="value">+3dB</span>
+                                <span class="label">Fundamental Boost</span>
+                            </div>
+                        </div>
+                        <p>This technique transforms the piano from a percussive instrument into something resembling a synthesized pad, while maintaining organic acoustic qualities.</p>
+                    </div>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">1:30 - 2:00</div>
+                    <h3 class="moment-title">Polyrhythmic Mathematics</h3>
+                    <p class="moment-description">
+                        Frahm layers 4/4 meter in the left hand against 6/8 patterns in the right, creating a 3:2 polyrhythmic relationship. This mathematical overlay generates complex rhythmic interference patterns that feel organic despite their precise construction.
+                    </p>
+                    <div class="mathematical-visualization">
+                        <h4 class="math-title">Polyrhythmic Relationships</h4>
+                        <div class="ratio-demonstration">
+                            <div class="ratio-element">4/4</div>
+                            <div class="ratio-operator">+</div>
+                            <div class="ratio-element">6/8</div>
+                            <div class="ratio-operator">=</div>
+                            <div class="ratio-element">3:2 Ratio</div>
+                        </div>
+                        <p>The polyrhythm creates a 12-beat cycle where the patterns align every measure, generating hypnotic complexity through mathematical precision.</p>
+                    </div>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">3:00 - 3:30</div>
+                    <h3 class="moment-title">Spatial Audio Design</h3>
+                    <p class="moment-description">
+                        The recording space has an RT60 reverberation time of approximately 2.3 seconds—significantly longer than typical concert halls. This extended decay creates the characteristic "floating" ambient texture that defines Frahm's sound.
+                    </p>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">6:00 - 7:00</div>
+                    <h3 class="moment-title">Electronic Integration</h3>
+                    <p class="moment-description">
+                        Frahm seamlessly blends analog synthesizers with the prepared piano, using matched tuning and complementary frequency ranges. The Juno-60's sawtooth waves fill the spectral gaps left by the piano's felt dampening, creating a unified acoustic-electronic timbre.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Minimalist Processes Section -->
+        <section class="methodology">
+            <h2>Part III: Minimalist Processes</h2>
+            <p style="text-align: center; color: #aaa; max-width: 600px; margin: 0 auto;">
+                Steve Reich's compositions demonstrate how systematic processes and mathematical transformations can create complex, evolving musical experiences from simple materials.
+            </p>
+        </section>
+
+        <!-- Steve Reich Analysis -->
+        <section class="track-analysis">
+            <div class="track-header">
+                <div class="track-number">04</div>
+                <h2 class="track-title">Music for 18 Musicians</h2>
+                <div class="track-artist">Steve Reich</div>
+                <p class="track-description">
+                    Reich's masterpiece represents the pinnacle of process music—compositions that unfold according to systematic, mathematical procedures rather than traditional narrative development. Every element serves a precise structural function within the larger architectural design.
+                </p>
+                
+                <div class="listen-section">
+                    <a href="https://www.youtube.com/watch?v=ZXJWO2FQ16c" target="_blank" class="listen-link primary">
+                        ▶ Listen on YouTube
+                    </a>
+                    <a href="https://soundcloud.com/search?q=steve%20reich%20music%20for%2018%20musicians" target="_blank" class="listen-link">
+                        SoundCloud Search
+                    </a>
+                    <a href="https://open.spotify.com/album/07vLMKBicGO4ZmE1sH9a9H" target="_blank" class="listen-link">
+                        Spotify
+                    </a>
+                </div>
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-moment">
+                    <div class="moment-timestamp">2:00 - 4:00</div>
+                    <h3 class="moment-title">Phasing Process</h3>
+                    <p class="moment-description">
+                        Reich employs his signature phasing technique: identical melodic patterns played at slightly different tempos gradually shift out of phase, creating continuously evolving rhythmic relationships. The tempo difference is precisely calculated—approximately 0.3% faster creates one complete phase cycle every 32 measures.
+                    </p>
+                    <div class="mathematical-visualization">
+                        <h4 class="math-title">Phasing Mathematics</h4>
+                        <div class="ratio-demonstration">
+                            <div class="ratio-element">0.3%</div>
+                            <div class="ratio-operator">Tempo Diff</div>
+                            <div class="ratio-element">32 Bars</div>
+                            <div class="ratio-operator">=</div>
+                            <div class="ratio-element">Full Cycle</div>
+                        </div>
+                        <p>This systematic process creates organic-sounding variation through purely mathematical means—the musicians simply play at different, constant tempos.</p>
+                    </div>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">5:00 - 8:00</div>
+                    <h3 class="moment-title">Harmonic Cycles</h3>
+                    <p class="moment-description">
+                        The piece is built on a cycle of eleven chords, each sustained for varying durations but following a strict mathematical progression. This harmonic foundation provides stability while the phasing patterns create surface complexity—order at multiple temporal scales.
+                    </p>
+                    <div class="technical-insight">
+                        <h4>Structural Analysis</h4>
+                        <div class="technical-details">
+                            <div class="tech-detail">
+                                <span class="value">11</span>
+                                <span class="label">Chord Cycle</span>
+                            </div>
+                            <div class="tech-detail">
+                                <span class="value">18</span>
+                                <span class="label">Musicians</span>
+                            </div>
+                            <div class="tech-detail">
+                                <span class="value">56</span>
+                                <span class="label">Minutes Duration</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">15:00 - 20:00</div>
+                    <h3 class="moment-title">Polyrhythmic Layering</h3>
+                    <p class="moment-description">
+                        Different instrumental groups operate in 2:3:4:5 rhythmic relationships simultaneously. These mathematical ratios create complex interference patterns—moments of alignment and displacement that generate the piece's hypnotic pulse variations.
+                    </p>
+                </div>
+
+                <div class="insight-moment">
+                    <div class="moment-timestamp">45:00 - End</div>
+                    <h3 class="moment-title">Architectural Symmetry</h3>
+                    <p class="moment-description">
+                        The work's large-scale structure mirrors itself: sections appear in palindromic order, creating perfect architectural symmetry. This demonstrates Reich's approach to time as sculptural material—shaped according to mathematical principles rather than narrative logic.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="conclusion">
+            <h2>The Science of Musical Excellence</h2>
+            <p>
+                These four compositions reveal that exceptional music often emerges from the intersection of mathematical precision and creative intuition. Whether through Blake's harmonic calculations, Arnalds' structural proportions, Frahm's acoustic innovations, or Reich's systematic processes, each demonstrates measurable techniques that transcend subjective taste.
+            </p>
+            <p>
+                Understanding these principles doesn't diminish music's emotional impact—it reveals the sophisticated craftsmanship behind transcendent artistic experiences. The greatest composers throughout history have intuitively or deliberately employed these same mathematical relationships, harmonic principles, and structural techniques.
+            </p>
+            <p>
+                By analyzing music through these objective lenses, we gain deeper appreciation for the architecture of sound and the measurable foundations of musical genius.
+            </p>
+        </section>
+
+        <div class="github-section">
+            <h3>Open Source Project</h3>
+            <p>This analysis framework is available on GitHub for further development and educational use.</p>
+            <a href="https://github.com/roitsch-code/interactive-music-guide" class="github-link">View on GitHub</a>
+        </div>
