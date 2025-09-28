@@ -502,7 +502,7 @@
 <body>
     <div class="grain-overlay"></div>
     
-    <div class="back-link" onclick="goBackToMainGuide()">← Back to Main Guide</div>
+    <a href="https://roitsch-code.github.io/interactive-music-guide/" class="back-link">← Back to Main Guide</a>
     
     <div class="container">
         <section class="hero">
@@ -833,16 +833,5 @@
             </div>
         </section>
     </div>
-
-    <script>
-    function goBackToMainGuide() {
-        // In Claude's interface, users will need to manually switch back to the main guide artifact
-        alert('Please return to the "Interactive Music Guide - SoundCloud Version" artifact to continue with the main analysis.');
-        // Alternative: window.close() if opened in a separate window
-        if (window.opener) {
-            window.close();
-        }
-    }
-    </script>
 </body>
 </html>
