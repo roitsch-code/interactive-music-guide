@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Pimp a Butterfly - Deep Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e8e8e8;
+            line-height: 1.7;
+            overflow-x: hidden;
+            font-weight: 400;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)"/></svg>') repeat;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px 40px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu.scrolled {
+            background: rgba(15, 15, 15, 0.98);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+
+        .nav-logo span {
+            color: #ff6600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #ff6600;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #ff6600;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 0 60px;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, #ff6600 50%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .album-cover {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            border: 3px solid rgba(255, 102, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #ff6600 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-artist {
+            font-size: 1.8rem;
+            color: #ff6600;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .hero-year {
+            font-size: 1.2rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .hero-awards {
+            margin-top: 30px;
+            padding: 20px 40px;
+            background: rgba(255, 102, 0, 0.1);
+            border: 1px solid rgba(255, 102, 0, 0.3);
+            color: #ff6600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 100px 0;
+        }
+
+        .section-dark {
+            background: rgba(20, 20, 20, 0.3);
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 50px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .section-intro {
+            max-width: 800px;
+            margin: 0 auto 60px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #bbb;
+            line-height: 1.8;
+        }
+
+        .content-text {
+            max-width: 900px;
+            margin: 0 auto 40px;
+            font-size: 1.15rem;
+            color: #bbb;
+            line-height: 1.8;
+        }
+
+        .highlight-box {
+            background: rgba(255, 102, 0, 0.1);
+            border-left: 3px solid #ff6600;
+            padding: 35px;
+            margin: 50px auto;
+            max-width: 900px;
+            font-style: italic;
+            font-size: 1.15rem;
+            line-height: 1.8;
+        }
+
+        /* Analysis Cards */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 50px;
+            margin-top: 60px;
+        }
+
+        .analysis-card {
+            background: rgba(25, 25, 25, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .analysis-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 102, 0, 0.4);
+            background: rgba(35, 35, 35, 0.9);
+        }
+
+        .analysis-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6600, #ff3300);
+        }
+
+        .analysis-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .analysis-title {
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .analysis-description {
+            color: #ccc;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .example-box {
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid rgba(255, 102, 0, 0.2);
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .example-box h4 {
+            color: #ff6600;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .example-box p {
+            color: #ddd;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        /* Track Breakdown */
+        .track-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .track-card {
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 35px;
+            transition: all 0.3s ease;
+        }
+
+        .track-card:hover {
+            border-color: rgba(255, 102, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .track-number {
+            font-size: 0.9rem;
+            color: #ff6600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+        }
+
+        .track-title {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .track-description {
+            color: #aaa;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Section Divider */
+        .section-divider {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .section-divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent 0%, #ff6600 50%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .section-divider::after {
+            content: '♪';
+            font-size: 2rem;
+            color: #ff6600;
+            background: #0f0f0f;
+            padding: 0 20px;
+        }
+
+        /* Listen Links */
+        .listen-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 50px 0;
+        }
+
+        .listen-link {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .listen-link:hover {
+            border-color: #ff6600;
+            background: rgba(255, 102, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .listen-link.primary {
+            background: #ff6600;
+            border-color: #ff6600;
+        }
+
+        .listen-link.primary:hover {
+            background: #ff8800;
+        }
+
+        /* Listening Guide */
+        .listening-guide {
+            background: rgba(255, 102, 0, 0.08);
+            border: 2px solid rgba(255, 102, 0, 0.3);
+            padding: 40px;
+            margin: 40px auto;
+            max-width: 900px;
+            border-radius: 8px;
+        }
+
+        .listening-guide h3 {
+            color: #ff6600;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            font-weight: 400;
+        }
+
+        .listening-guide ol {
+            color: #ddd;
+            margin-left: 25px;
+            line-height: 2;
+        }
+
+        .listening-guide li {
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+
+        .listening-guide strong {
+            color: #ff6600;
+        }
+
+        /* Footer Navigation */
+        .footer-nav {
+            background: rgba(20, 20, 20, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .footer-nav h3 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 15px 40px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .nav-menu {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: rgba(15, 15, 15, 0.98);
+                flex-direction: column;
+                gap: 0;
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                pointer-events: none;
+            }
+
+            .nav-links.active {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .nav-links a {
+                padding: 15px 0;
+                width: 100%;
+                text-align: center;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .album-cover {
+                width: 200px;
+                height: 200px;
+                font-size: 4rem;
+            }
+
+            .analysis-grid,
+            .track-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(40, 40, 40, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 102, 0, 0.6);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 102, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+    
+    <!-- Navigation Menu -->
+    <nav class="nav-menu">
+        <div class="nav-container">
+            <a href="https://roitsch-code.github.io/interactive-music-guide/" class="nav-logo">Hearing <span>Music</span></a>
+            <div class="nav-links" id="navLinks">
+                <a href="https://roitsch-code.github.io/interactive-music-guide/">Home</a>
+                <a href="#why">Why This Album</a>
+                <a href="#analysis">Deep Analysis</a>
+                <a href="#tracks">Key Moments</a>
+                <a href="#practice">Listening Guide</a>
+                <a href="https://roitsch-code.github.io/interactive-music-guide/miseducation.html">Lauryn Hill</a>
+            </div>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="album-cover">👑</div>
+            <h1>To Pimp a Butterfly</h1>
+            <div class="hero-artist">Kendrick Lamar</div>
+            <div class="hero-year">2015</div>
+            <div class="hero-awards">★ First Hip-Hop Album to Win Pulitzer Prize ★</div>
+        </section>
+
+        <!-- Why This Album Section -->
+        <section class="section" id="why">
+            <h2>Why This Album Rewrote the Rules</h2>
+            <p class="content-text">
+                "To Pimp a Butterfly" isn't just music—it's political architecture disguised as jazz-funk-hip-hop fusion. Released in March 2015, during the height of the Black Lives Matter movement, TPAB demonstrated that hip-hop could function as historical reconstruction, psychological excavation, and cultural prophecy simultaneously.
+            </p>
+
+            <p class="content-text">
+                This is the first hip-hop album to win the Pulitzer Prize for Music (2018), and for good reason. Kendrick reconstructs 100 years of Black American music—from the blues to bebop to G-funk—not as nostalgic homage but as living genealogy. Every production choice carries political weight. Every dissonant chord is intentional chaos. Every moment of near-collapse is controlled resistance.
+            </p>
+
+            <div class="highlight-box">
+                "TPAB proves that music can be simultaneously a history lesson, a therapy session, a political manifesto, and a dance party—all while maintaining uncompromising artistic integrity."
+            </div>
+
+            <div style="max-width: 800px; margin: 50px auto; text-align: center;">
+                <h3 style="color: #ff6600; margin-bottom: 20px; font-size: 1.4rem; font-weight: 400;">Experience the Full Album</h3>
+                <iframe width="100%" height="450" src="https://www.youtube.com/embed/l9fN-8NjrvI?si=KxfAApVgVpwEFI5k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="max-width: 800px; margin-bottom: 20px;"></iframe>
+            </div>
+
+            <div class="listen-section">
+                <a href="https://www.youtube.com/embed/l9fN-8NjrvI?si=KxfAApVgVpwEFI5k" target="_blank" class="listen-link primary">
+                    ▶ YouTube Full Album
+                </a>
+                <a href="https://open.spotify.com/intl-de/album/7ycBtnsMtyVbbwTfJwRjSP?si=5dTy9guZTwucrI04_6nh0w" target="_blank" class="listen-link">
+                    Spotify
+                </a>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Deep Analysis Section -->
+        <section class="section section-dark" id="analysis">
+            <h2>Deep Analysis: Beyond the Surface</h2>
+            <p class="section-intro">
+                This isn't about mathematical patterns or golden ratios. TPAB operates on entirely different principles—chaos, genealogy, embodiment, and resurrection.
+            </p>
+
+            <div class="analysis-grid">
+                <div class="analysis-card">
+                    <div class="analysis-icon">🎭</div>
+                    <h3 class="analysis-title">The Voice as Multiplicity</h3>
+                    <p class="analysis-description">
+                        Kendrick doesn't just rap—he inhabits at least 20 different vocal personas across the album. High-pitched, paranoid Kendrick. Deep, authoritative Kendrick. Smooth, seductive Kendrick. Each voice represents a different psychological state, a different mask, a different survival strategy.
+                    </p>
+                    <div class="example-box">
+                        <h4>Listen for this:</h4>
+                        <p><strong>"u" (1:52):</strong> Drunk, self-loathing voice in hotel room—distortion = mental distortion</p>
+                        <p><strong>"For Free?" (entire track):</strong> Rapid-fire bebop voice—channeling jazz's manic energy</p>
+                        <p><strong>"How Much a Dollar Cost":</strong> Measured, contemplative voice—spiritual seeking</p>
+                    </div>
+                </div>
+
+                <div class="analysis-card">
+                    <div class="analysis-icon">🌀</div>
+                    <h3 class="analysis-title">Controlled Chaos as Aesthetic</h3>
+                    <p class="analysis-description">
+                        Flying Lotus and the production team don't aim for perfection—they aim for the edge of collapse. Beats stumble. Jazz solos threaten to spiral out of control. This isn't sloppiness; it's intentional near-disaster as political metaphor. Black life in America feels like controlled chaos—the album sonically embodies this.
+                    </p>
+                    <div class="example-box">
+                        <h4>Hear the organized chaos:</h4>
+                        <p><strong>"For Free?":</strong> Bebop drums that barely stay on the rails</p>
+                        <p><strong>"Wesley's Theory":</strong> Funk bass that sounds drunk and off-kilter</p>
+                        <p><strong>"u":</strong> Production literally falls apart as Kendrick's mental state deteriorates</p>
+                    </div>
+                </div>
+
+                <div class="analysis-card">
+                    <div class="analysis-icon">🕰️</div>
+                    <h3 class="analysis-title">Non-Linear Time as Resistance</h3>
+                    <p class="analysis-description">
+                        TPAB exists in multiple time periods simultaneously—1960s civil rights, 1970s funk liberation, 1990s G-funk, 2015 Black Lives Matter, and an imagined Afrofuturist future. This temporal fluidity resists colonial chronology. The album argues: Black time isn't linear, it's circular, ancestral, prophetic.
+                    </p>
+                    <div class="example-box">
+                        <h4>Time-bending moments:</h4>
+                        <p><strong>Tupac interview:</strong> Resurrecting the dead through conversation</p>
+                        <p><strong>Parliament-Funkadelic samples:</strong> 1970s funk as future blueprint</p>
+                        <p><strong>Bebop references:</strong> 1940s jazz as revolutionary template</p>
+                    </div>
+                </div>
+
+                <div class="analysis-card">
+                    <div class="analysis-icon">💪</div>
+                    <h3 class="analysis-title">Funk as Body Politics</h3>
+                    <p class="analysis-description">
+                        Thundercat's bass isn't just low-end—it's physical. You don't just hear funk, you FEEL it in your chest, your hips, your feet. The album makes resistance embodied. When the system tries to control Black bodies, funk reclaims the body through movement, through groove, through undeniable physical presence.
+                    </p>
+                    <div class="example-box">
+                        <h4>Feel the bass:</h4>
+                        <p><strong>"Wesley's Theory":</strong> Wobbling bass = economic instability made physical</p>
+                        <p><strong>"King Kunta":</strong> Slap bass = Black power assertion</p>
+                        <p><strong>"These Walls":</strong> Smooth bass = seduction and entrapment</p>
+                    </div>
+                </div>
+
+                <div class="analysis-card">
+                    <div class="analysis-icon">📜</div>
+                    <h3 class="analysis-title">The Poem as Architecture</h3>
+                    <p class="analysis-description">
+                        The recurring poem throughout the album isn't decoration—it's literal structure. Each track adds lines, building meaning cumulatively. This isn't golden ratio mathematics; it's literary architecture. The album is written, not just composed.
+                    </p>
+                    <div class="example-box">
+                        <h4>Track the poem:</h4>
+                        <p><strong>First appearance:</strong> "I remember you was conflicted..."</p>
+                        <p><strong>Each track:</strong> Adds new lines, building context</p>
+                        <p><strong>Final revelation:</strong> Poem becomes conversation with Tupac</p>
+                    </div>
+                </div>
+
+                <div class="analysis-card">
+                    <div class="analysis-icon">🎺</div>
+                    <h3 class="analysis-title">Jazz as Historical Conversation</h3>
+                    <p class="analysis-description">
+                        TPAB doesn't use jazz for "fusion"—it has a conversation with jazz history. Bebop represented freedom (Charlie Parker). Modal jazz represented spiritual seeking (Coltrane). Free jazz represented radical politics (Ornette Coleman). Kendrick engages with all three as dialogue partners, not source material.
+                    </p>
+                    <div class="example-box">
+                        <h4>The jazz genealogy:</h4>
+                        <p><strong>Kamasi Washington's saxophone:</strong> Continuing Coltrane's spiritual quest</p>
+                        <p><strong>Robert Glasper's piano:</strong> Bridging jazz and hip-hop vocabularies</p>
+                        <p><strong>Terrace Martin's production:</strong> Making jazz contemporary, not nostalgic</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Key Tracks Section -->
+        <section class="section" id="tracks">
+            <h2>Five Essential Moments</h2>
+            <p class="section-intro">
+                These tracks demonstrate different aspects of the album's revolutionary approach to sound, politics, and identity.
+            </p>
+
+            <div class="track-grid">
+                <div class="track-card">
+                    <div class="track-number">Track 02</div>
+                    <h3 class="track-title">For Free? (Interlude)</h3>
+                    <p class="track-description">
+                        Pure bebop over spoken-word rap. Kendrick channels the manic energy of 1940s jazz while addressing capitalism and exploitation. The drums barely hold together—intentionally. This is controlled chaos as political statement: the system is designed to make you stumble.
+                    </p>
+                    <div class="example-box">
+                        <h4>What to hear:</h4>
+                        <p>Rapid-fire delivery matching bebop's frenetic pace. Drums that sound like they're falling apart but never actually do. The discomfort is the point.</p>
+                    </div>
+                </div>
+
+                <div class="track-card">
+                    <div class="track-number">Track 03</div>
+                    <h3 class="track-title">King Kunta</h3>
+                    <p class="track-description">
+                        Funk as power reclamation. The slap bass announces: Black culture cannot be appropriated without consequence. References to Roots (Kunta Kinte) merge with P-Funk to create a genealogy of resistance through groove.
+                    </p>
+                    <div class="example-box">
+                        <h4>Feel the bass:</h4>
+                        <p>Thundercat's slap bass technique creates percussive, aggressive funk. This isn't background music—it demands your physical response. Try staying still. You can't.</p>
+                    </div>
+                </div>
+
+                <div class="track-card">
+                    <div class="track-number">Track 07</div>
+                    <h3 class="track-title">Alright</h3>
+                    <p class="track-description">
+                        The anthem of a movement. "We gon' be alright" became a protest chant in 2015-2016. Pharrell's minimalist production creates space for collective catharsis. The simplicity is strategic—it makes the song portable, adaptable, communal.
+                    </p>
+                    <div class="example-box">
+                        <h4>Why it became an anthem:</h4>
+                        <p>Simple hook, easy to chant. Optimistic without being naive. Production leaves space for crowds to fill. Music as democratic participation, not passive consumption.</p>
+                    </div>
+                </div>
